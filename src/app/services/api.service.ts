@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Campaign {
   subject: string;
@@ -25,9 +26,7 @@ export interface Stats {
   providedIn: 'root'
 })
 export class ApiService {
-  // Use http for local development, adjust port as necessary. API runs on https://localhost:7119 or 5001 usually depending on launchsettings.json
-  // Assuming default port 5001 for https
-  private apiUrl = 'https://localhost:7280/api'; 
+  private apiUrl = environment.apiUrl; 
 
   constructor(private http: HttpClient) { }
 
