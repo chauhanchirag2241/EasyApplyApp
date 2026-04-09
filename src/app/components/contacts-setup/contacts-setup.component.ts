@@ -70,9 +70,9 @@ export class ContactsSetupComponent implements OnInit {
       id: campaign.id,
       subject: campaign.subject,
       body: campaign.body || '',
-      scheduleType: campaign.scheduleType || 'Once',
-      scheduledTimeOfDay: campaign.scheduledTimeOfDay || '10:00',
-      scheduledTime: campaign.scheduledTime ? new Date(campaign.scheduledTime).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16)
+      scheduleType: 'Once', // Keep defaults for background compatibility
+      scheduledTimeOfDay: '10:00',
+      scheduledTime: new Date().toISOString().slice(0, 16)
     };
   }
 
@@ -86,28 +86,13 @@ export class ContactsSetupComponent implements OnInit {
       return;
     }
 
-    if (this.editCampaignData.scheduleType === 'Once' && !this.editCampaignData.scheduledTime) {
-      alert("Please select a date and time for the one-time campaign.");
-      return;
-    }
-
-    if (this.editCampaignData.scheduleType === 'Daily' && !this.editCampaignData.scheduledTimeOfDay) {
-      alert("Please enter a time for the daily campaign.");
-      return;
-    }
-    
     this.isLoading = true;
     const updatePayload: any = {
       subject: this.editCampaignData.subject,
       body: this.editCampaignData.body,
-      scheduleType: this.editCampaignData.scheduleType,
+      scheduleType: 'Once',
+      scheduledTime: new Date().toISOString()
     };
-
-    if (this.editCampaignData.scheduleType === 'Once') {
-      updatePayload.scheduledTime = new Date(this.editCampaignData.scheduledTime).toISOString();
-    } else {
-      updatePayload.scheduledTimeOfDay = this.editCampaignData.scheduledTimeOfDay;
-    }
 
     this.apiService.updateCampaign(this.editCampaignData.id, updatePayload).subscribe({
       next: () => {

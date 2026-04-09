@@ -12,17 +12,21 @@ export class CampaignSetupComponent {
   body: string = '';
   scheduledTime: string = '';
   selectedFile: File | null = null;
+  resumeName: string = '';
   isLoading = false;
   successMessage = '';
   errorMessage = '';
 
-  scheduleType: string = 'Once';
+  scheduleType: string = 'Once'; // Default kept for backend if needed
   scheduledTimeOfDay: string = '10:00';
 
   constructor(private apiService: ApiService) { }
 
   onFileSelected(event: any) {
     this.selectedFile = event.target.files[0];
+    if (this.selectedFile) {
+        this.resumeName = this.selectedFile.name;
+    }
   }
 
   submit() {
@@ -30,19 +34,23 @@ export class CampaignSetupComponent {
     this.successMessage = '';
     this.errorMessage = '';
 
-    if (this.scheduleType === 'Once' && !this.scheduledTime) {
-      this.errorMessage = "Please select a date and time.";
-      this.isLoading = false;
-      return;
-    }
-    if (this.scheduleType === 'Daily' && !this.scheduledTimeOfDay) {
-      this.errorMessage = "Please select a daily time.";
+    if (!this.subject || !this.body) {
+      this.errorMessage = "Subject and Body are required.";
       this.isLoading = false;
       return;
     }
 
     if (this.selectedFile) {
-      this.apiService.uploadResume(this.selectedFile).subscribe({
+      let finalName = this.resumeName.trim() || this.selectedFile.name;
+      const extMatch = this.selectedFile.name.match(/\.[0-9a-z]+$/i);
+      if (extMatch) {
+         const ext = extMatch[0];
+         if (!finalName.toLowerCase().endsWith(ext.toLowerCase())) {
+             finalName += ext;
+         }
+      }
+
+      this.apiService.uploadResume(this.selectedFile, finalName).subscribe({
         next: (res) => this.createCampaignCall(res.resumeFilePath),
         error: (err) => {
           this.errorMessage = 'Failed to upload resume.';
@@ -58,15 +66,11 @@ export class CampaignSetupComponent {
     const campaign: any = {
       subject: this.subject,
       body: this.body,
-      scheduleType: this.scheduleType,
+      scheduleType: 'Once', // Hardcode default
       resumeFilePath
     };
 
-    if (this.scheduleType === 'Once') {
-      campaign.scheduledTime = new Date(this.scheduledTime).toISOString();
-    } else {
-      campaign.scheduledTimeOfDay = this.scheduledTimeOfDay;
-    }
+    campaign.scheduledTime = new Date().toISOString(); // Default to current time
 
     this.apiService.createCampaign(campaign).subscribe({
       next: (res) => {

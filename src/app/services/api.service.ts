@@ -34,9 +34,13 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/campaigns`, campaign);
   }
 
-  uploadResume(file: File): Observable<{resumeFilePath: string}> {
+  uploadResume(file: File, customName?: string): Observable<{resumeFilePath: string}> {
     const formData = new FormData();
-    formData.append('file', file);
+    if (customName) {
+      formData.append('file', file, customName);
+    } else {
+      formData.append('file', file);
+    }
     return this.http.post<{resumeFilePath: string}>(`${this.apiUrl}/campaigns/resume`, formData);
   }
 

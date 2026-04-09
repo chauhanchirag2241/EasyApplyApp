@@ -2,23 +2,40 @@
   <!-- Navbar -->
   <nav class="bg-indigo-600 shadow">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex">
-          <div class="flex-shrink-0 flex items-center">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
             <span class="text-white text-xl font-extrabold tracking-tight">EasyApply</span>
           </div>
-          <div class="hidden sm:ml-8 sm:flex sm:space-x-4 h-full items-end pb-2">
+          <div class="hidden sm:ml-8 sm:flex sm:space-x-4 h-full items-center">
             <a routerLink="/dashboard" routerLinkActive="text-white bg-indigo-700" class="text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">Dashboard</a>
             <a routerLink="/campaigns" routerLinkActive="text-white bg-indigo-700" class="text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">New Campaign</a>
             <a routerLink="/contacts" routerLinkActive="text-white bg-indigo-700" class="text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">Add Contacts</a>
           </div>
         </div>
+        <div class="-mr-2 flex sm:hidden">
+          <button (click)="isMenuOpen = !isMenuOpen" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-indigo-200 hover:text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path [ngClass]="{'hidden': isMenuOpen, 'inline-flex': !isMenuOpen }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              <path [ngClass]="{'hidden': !isMenuOpen, 'inline-flex': isMenuOpen }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mobile menu -->
+    <div class="sm:hidden" [ngClass]="{'block': isMenuOpen, 'hidden': !isMenuOpen }">
+      <div class="px-2 pt-2 pb-3 space-y-1">
+        <a routerLink="/dashboard" routerLinkActive="text-white bg-indigo-700" (click)="isMenuOpen = false" class="text-indigo-100 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
+        <a routerLink="/campaigns" routerLinkActive="text-white bg-indigo-700" (click)="isMenuOpen = false" class="text-indigo-100 hover:text-white block px-3 py-2 rounded-md text-base font-medium">New Campaign</a>
+        <a routerLink="/contacts" routerLinkActive="text-white bg-indigo-700" (click)="isMenuOpen = false" class="text-indigo-100 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Add Contacts</a>
       </div>
     </div>
   </nav>
 
   <!-- Main Content -->
-  <main class="flex-1 w-full max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+  <main class="flex-1 w-full max-w-7xl mx-auto py-6 sm:py-8 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
     <router-outlet></router-outlet>
   </main>
 </div>
