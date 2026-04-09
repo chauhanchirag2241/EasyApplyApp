@@ -1,0 +1,189 @@
+<div class="px-8 py-8 max-w-7xl mx-auto space-y-8">
+  <!-- Edit Campaign Modal -->
+  <div *ngIf="isEditingCampaign" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl p-8 m-4">
+      <h3 class="text-2xl font-bold text-gray-900 mb-6">Edit Campaign</h3>
+      <div class="space-y-5">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700">Email Subject</label>
+          <input type="text" [(ngModel)]="editCampaignData.subject" class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 border" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700">Email Body</label>
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 my-2 shadow-sm relative">
+            <span class="absolute top-0 right-0 transform translate-x-1.5 -translate-y-1.5 flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+            </span>
+            <p class="text-xs text-gray-700 font-medium mb-1 line-clamp-1">Personalize your emails with Dynamic Placeholders!</p>
+            <p ngNonBindable class="text-[11px] text-gray-500 font-mono tracking-tight">Use <b class="text-indigo-600 bg-indigo-50 px-1 rounded">{{Greeting}}</b> (IST Morning/Afternoon), <b class="text-indigo-600 bg-indigo-50 px-1 rounded">{{Company}}</b>, or <b class="text-indigo-600 bg-indigo-50 px-1 rounded">{{Manager}}</b>.</p>
+          </div>
+          <textarea [(ngModel)]="editCampaignData.body" rows="8" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 border font-mono text-sm"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Schedule Strategy</label>
+          <div class="flex items-center space-x-4 mb-4">
+            <label class="inline-flex items-center">
+              <input type="radio" class="form-radio text-indigo-600" name="scheduleType" value="Once" [(ngModel)]="editCampaignData.scheduleType">
+              <span class="ml-2">Run Once (Specific Date & Time)</span>
+            </label>
+            <label class="inline-flex items-center">
+              <input type="radio" class="form-radio text-indigo-600" name="scheduleType" value="Daily" [(ngModel)]="editCampaignData.scheduleType">
+              <span class="ml-2">Run Daily (Recurring)</span>
+            </label>
+          </div>
+        </div>
+
+        <div *ngIf="editCampaignData.scheduleType === 'Once'">
+          <label class="block text-sm font-semibold text-gray-700">Scheduled Send Date & Time</label>
+          <input type="datetime-local" [(ngModel)]="editCampaignData.scheduledTime" class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 border" />
+        </div>
+        
+        <div *ngIf="editCampaignData.scheduleType === 'Daily'">
+          <label class="block text-sm font-semibold text-gray-700">Daily Send Time</label>
+          <input type="time" [(ngModel)]="editCampaignData.scheduledTimeOfDay" class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 border" />
+          <p class="text-xs text-gray-500 mt-1">Pending contacts will automatically be processed every day at this time.</p>
+        </div>
+        <div class="mt-8 flex justify-end space-x-3">
+          <button (click)="cancelEditCampaign()" class="bg-white py-2 px-5 border border-gray-300 rounded-lg shadow-sm text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+          <button (click)="saveEditCampaign()" [disabled]="isLoading" class="bg-indigo-600 border border-transparent rounded-lg shadow-sm py-2 px-5 text-sm font-bold text-white hover:bg-indigo-700 transition-colors">{{ isLoading ? 'Saving...' : 'Save Changes' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-8">
+    
+    <!-- Left Column: Campaigns List -->
+    <div class="w-full lg:w-1/3 bg-white p-6 shadow-sm sm:rounded-xl border border-gray-200 h-fit sticky top-8">
+      <h3 class="text-xl font-extrabold text-gray-900 mb-6 tracking-tight">Campaigns</h3>
+
+      <div *ngIf="isLoadingCampaigns" class="text-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+      </div>
+
+      <div *ngIf="!isLoadingCampaigns && campaigns.length === 0" class="text-center py-8 text-sm text-gray-500">
+        No campaigns found. Please create one first!
+      </div>
+
+      <div *ngIf="!isLoadingCampaigns" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+        <div *ngFor="let c of campaigns" 
+             (click)="selectCampaign(c.id)"
+             [ngClass]="selectedCampaignId === c.id ? 'ring-2 ring-indigo-500 bg-indigo-50 border-transparent shadow-sm' : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50 bg-white'"
+             class="cursor-pointer border rounded-xl p-5 transition duration-150 ease-in-out relative group">
+          
+          <div class="flex justify-between items-start">
+            <div class="pr-6">
+              <h4 class="text-base font-bold text-gray-900 truncate">{{ c.subject }}</h4>
+              <p class="text-xs text-gray-500 mt-1 mb-3 font-medium">
+                <span *ngIf="c.scheduleType === 'Once' || !c.scheduleType">{{ c.scheduledTime | date:'medium' }}</span>
+                <span *ngIf="c.scheduleType === 'Daily'" class="flex items-center text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 max-w-fit">
+                  <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  Daily at {{ c.scheduledTimeOfDay }}
+                </span>
+              </p>
+            </div>
+            <!-- Actions -->
+            <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button (click)="startEditCampaign(c, $event)" title="Edit Campaign" class="p-1.5 text-gray-400 hover:text-indigo-600 rounded-md hover:bg-indigo-100 bg-white shadow-sm border border-gray-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </button>
+              <button (click)="deleteCampaign(c.id, $event)" title="Delete Campaign" class="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-100 bg-white shadow-sm border border-gray-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            </div>
+          </div>
+          
+          <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-blue-100 text-blue-800">
+            {{ c.prospectCount || 0 }} Contacts
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Add & View Contacts -->
+    <div class="w-full lg:w-2/3 space-y-8">
+      
+      <!-- Import Form -->
+      <div class="bg-white px-8 py-8 shadow-sm sm:rounded-xl border border-gray-200">
+        <h2 class="text-2xl font-extrabold text-gray-900 mb-6 tracking-tight">Add HR Contacts</h2>
+        
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700">Paste Email Addresses & Data</label>
+            <p class="text-xs text-gray-500 mb-3">Enter one per line using commas (Email, Company, HR Name). Only Email is required.</p>
+            <textarea [(ngModel)]="emailsInput" rows="6" class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-3 border transition duration-200 bg-gray-50 font-mono" placeholder="hr1@company.com, ACME Corp, John Doe&#10;hr2@company.com, Stark Industries, Tony&#10;hr3@company.com"></textarea>
+          </div>
+        </div>
+
+        <div *ngIf="successMessage" class="mt-6 p-4 bg-green-50 rounded-md border border-green-200 text-green-800 font-medium">
+          {{ successMessage }}
+        </div>
+        <div *ngIf="errorMessage" class="mt-6 p-4 bg-red-50 rounded-md border border-red-200 text-red-800 font-medium">
+          {{ errorMessage }}
+        </div>
+
+        <div class="mt-6 flex justify-end">
+          <button (click)="submit()" [disabled]="isLoading || !selectedCampaignId" class="inline-flex justify-center py-2.5 px-6 border border-transparent shadow-md text-sm font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition duration-200">
+            {{ isLoading ? 'Processing...' : 'Import Contacts' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Existing Contacts List -->
+      <div *ngIf="selectedCampaignId" class="bg-white px-8 py-8 shadow-sm sm:rounded-xl border border-gray-200">
+        <h3 class="text-xl font-extrabold text-gray-900 mb-6 tracking-tight">Existing Contacts</h3>
+
+        <div *ngIf="isLoadingProspects" class="text-center py-4">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 mx-auto"></div>
+        </div>
+
+        <div *ngIf="!isLoadingProspects && selectedCampaignProspects.length === 0" class="text-center py-8 text-sm text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+          No contacts added to this campaign yet.
+        </div>
+
+        <div *ngIf="!isLoadingProspects && selectedCampaignProspects.length > 0" class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Email Address</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Company & HR</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Processed Date</th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200 text-sm">
+              <tr *ngFor="let p of selectedCampaignProspects" class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ p.emailAddress }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <span *ngIf="p.companyName || p.managerName" class="block font-medium text-gray-800">{{ p.companyName || 'Unknown Company' }}</span>
+                  <span *ngIf="p.managerName" class="block text-xs text-gray-400 mt-0.5">HR: {{ p.managerName }}</span>
+                  <span *ngIf="!p.companyName && !p.managerName">-</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span [ngClass]="{
+                    'bg-yellow-100 text-yellow-800': p.status === 'Pending',
+                    'bg-green-100 text-green-800': p.status === 'Sent',
+                    'bg-red-100 text-red-800': p.status === 'Failed'
+                  }" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold">
+                    {{ p.status }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ p.sentDate ? (p.sentDate | date:'medium') : '-' }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right font-medium space-x-3">
+                  <button (click)="sendNow(p.id)" class="text-indigo-600 hover:text-indigo-900 transition-colors">Send Now</button>
+                  <button (click)="editProspect(p.id, p.emailAddress)" class="text-gray-400 hover:text-indigo-600 transition-colors">Edit</button>
+                  <button (click)="deleteProspect(p.id)" class="text-gray-400 hover:text-red-600 transition-colors">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
