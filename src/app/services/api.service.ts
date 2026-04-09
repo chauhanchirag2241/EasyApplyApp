@@ -75,4 +75,8 @@ export class ApiService {
   getStats(): Observable<Stats> {
     return this.http.get<Stats>(`${this.apiUrl}/dashboard/stats`);
   }
+
+  executePendingEmails(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/dashboard/execute-all`, {});
+  }
 }
