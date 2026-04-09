@@ -12,6 +12,7 @@ export class DashboardComponent implements OnInit {
   isLoading = true;
   isExecuting = false;
   successMessage = '';
+  errorMessage = '';
 
   constructor(private apiService: ApiService) {}
 
